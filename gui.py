@@ -17,6 +17,11 @@ def launch_edit_thread(credential,stub):
     worker_thread.start()
     worker_thread.join()
 
+def launch_add_thread(stub):
+    worker_thread = threading.Thread(target=open_add_dialog(stub), args=())
+    worker_thread.start()
+    worker_thread.join()
+
 def launch_error_thread(text):
     worker_thread = threading.Thread(target=open_error_window, args=())
     worker_thread.start()
@@ -111,6 +116,29 @@ def open_edit_dialog(cred,stub):
             break              
     dialog.close()
 
+def open_add_dialog(stub):
+    layout = [ [sg.Text('Nome     '),sg.InputText()],[sg.Text('User     '), sg.InputText()],[sg.Text('Password'), sg.InputText()],
+               [sg.Button('Aggiungi')] ]
+
+    global crypto_psw
+    
+    #get password
+    dialog = sg.Window('Aggiungi credenziale', layout)
+    # Event Loop to process "events" and get the "values" of the inputs
+    while True:
+        event, values = dialog.read()
+        if event == 'Aggiungi':
+            new_row = {}
+            new_row["name"] = values[0]
+            new_row["user"] = values[1]
+            new_row["psw"] = values[2]
+            stub.add_credential(new_row,crypto_psw)
+            refresh_data()
+            break
+        elif event == sg.WIN_CLOSED:	# if user closes window or clicks cancel
+            break              
+    dialog.close()
+
 def open_main_window(stub):
     #add a touch of color
     sg.theme('DarkAmber')
@@ -135,9 +163,7 @@ def open_main_window(stub):
             elif event == 'Exit': #exit button
                 break
             elif event == 'Aggiungi':
-                break
-            elif event == 'Elimina':
-                break
+                launch_add_thread(stub)
             elif event == '_table_':
                 launch_edit_thread(data[values['_table_'][0]],stub)
                 

@@ -23,8 +23,11 @@ class Credential:
 class FileManager:
     credentials = {}
 
-    def add_credential(self,name,user,psw):
-        self.credentials.append(Credential(name,user,psw))
+    def add_credential(self,cred,psw):
+        check = self.is_already_present(cred["name"])
+        if check == False:
+            self.credentials.append(cred)
+            self.save_enc_file(json.dumps(self.credentials).encode(),psw)
     
     def remove_credential(self,name,psw):
         for y in self.credentials:
