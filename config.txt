@@ -1,0 +1,4 @@
+{
+	"filename" : "data.csv",
+	"filename-enc" : "encrypted.txt"
+}
