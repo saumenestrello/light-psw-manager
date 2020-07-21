@@ -149,6 +149,8 @@ try:
     with open('config.txt') as json_file:
         config = json.load(json_file)
         db_path = config["db_path"]
+        if not ('.db' in db_path):
+            raise ValueError('invalid db path')
 except Exception as e:
     db_path = 'storage.db'
     with open('config.txt', 'wb') as f:
