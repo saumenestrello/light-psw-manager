@@ -5,9 +5,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 def derive_key(password_provided):
-    #print('Inserisci la password:')
-    #password_provided = input() 
-    password = password_provided.encode() # Convert to type bytes
+    password = password_provided.encode() # convert to type bytes
     salt = b'\xdaUT\xac\xed\x9e6\xd2f\xd5\x01}\xe89T\xcf' 
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
@@ -16,5 +14,5 @@ def derive_key(password_provided):
         iterations=100000,
         backend=default_backend()
     )
-    key = base64.urlsafe_b64encode(kdf.derive(password)) # Can only use kdf once
+    key = base64.urlsafe_b64encode(kdf.derive(password))
     return key

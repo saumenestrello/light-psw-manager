@@ -1,4 +1,3 @@
 {
-	"filename" : "data.csv",
-	"filename-enc" : "encrypted.txt"
+    "db_path": "storage.db"
 }

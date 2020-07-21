@@ -3,9 +3,13 @@ import threading
 
 crypto_psw = ''
 
-def launch_thread(stub):
+def set_db_handler(stub):
+    global db_handler
+    db_handler = stub
+
+def launch_thread():
     #launch thread to open main window
-    worker_thread = threading.Thread(target=open_main_window(stub), args=())
+    worker_thread = threading.Thread(target=open_main_window(), args=())
     worker_thread.start()
 
 def launch_psw_thread():
@@ -14,15 +18,21 @@ def launch_psw_thread():
     worker_thread.start()
     worker_thread.join()
 
-def launch_edit_thread(credential,stub):
-    #launch thread to open edit dialog
-    worker_thread = threading.Thread(target=open_edit_dialog(credential,stub), args=())
+def launch_change_psw_thread():
+    #launch thread to open password dialog
+    worker_thread = threading.Thread(target=open_change_psw_dialog(), args=())
     worker_thread.start()
     worker_thread.join()
 
-def launch_add_thread(stub):
+def launch_edit_thread(credential):
+    #launch thread to open edit dialog
+    worker_thread = threading.Thread(target=open_edit_dialog(credential), args=())
+    worker_thread.start()
+    worker_thread.join()
+
+def launch_add_thread():
     #launch thread to open add dialog
-    worker_thread = threading.Thread(target=open_add_dialog(stub), args=())
+    worker_thread = threading.Thread(target=open_add_dialog(), args=())
     worker_thread.start()
     worker_thread.join()
 
@@ -72,7 +82,7 @@ def create_table(json_data):
                         text_color='red')
                         
     #create layout as an array of rows
-    layout = [[table],[sg.Button('Add'),sg.Button('Exit')]]
+    layout = [[table],[sg.Button('Add'),sg.Button('Change Psw'),sg.Button('Exit')]]
 
     #return window with table inside
     return sg.Window('Credentials list',font='Helvetica',resizable=True).Layout(layout)
@@ -92,6 +102,7 @@ def open_psw_dialog():
                 #save psw inside a global variable
                 global crypto_psw
                 crypto_psw = psw
+                db_handler.set_psw(psw)
                 break
             else:
                 #show error
@@ -99,13 +110,49 @@ def open_psw_dialog():
                 
     dialog.close()
 
-def open_edit_dialog(cred,stub):
+def open_change_psw_dialog():
+    #create layout for the dialog
+    layout = [ [sg.Text('Old Psw',size=(15,1)), sg.InputText(size=(25,1),justification='center', password_char='*')],
+               [sg.Text('New Psw',size=(15,1)), sg.InputText(size=(25,1),justification='center', password_char='*')],
+               [sg.Text('Repeat New Psw',size=(15,1)), sg.InputText(size=(25,1),justification='center', password_char='*')],
+               [sg.Button('Change')] ]
+    
+    #get password
+    dialog = sg.Window('Change password', layout)
+    global crypto_psw
+    #event loop to process "events" and get the "values" of the inputs
+    while True:
+        event, values = dialog.read()
+        if event == 'Change':
+            old_psw = values[0]
+            new_psw = values[1]
+            repeat_psw = values[2]
+            if new_psw != '' and old_psw != '' and repeat_psw != '':
+
+                if new_psw == repeat_psw and old_psw == crypto_psw:
+                    #save psw inside a global variable
+                    db_handler.change_psw(new_psw)
+                    crypto_psw = new_psw
+                    break
+                else:
+                    if new_psw != repeat_psw:
+                        open_error_window('The new passwords are different!')
+                    elif old_psw != crypto_psw:
+                        open_error_window('Old password is not correct')
+                    break
+            else:
+                #show error
+                open_error_window('Insert a valid password!')
+                break
+                
+    dialog.close()
+
+def open_edit_dialog(cred):
     #create layout for the dialog
     layout = [ [sg.Text('Name',size=(10,1)),sg.InputText(cred["name"],size=(25,1),justification='center',disabled=True)],[sg.Text('User',size=(10,1)), sg.InputText(cred["user"],size=(25,1),justification='center')],
                [sg.Text('Password',size=(10,1)), sg.InputText(cred["psw"],size=(25,1),justification='center')],
                [sg.Button('Edit'),sg.Button('Delete')] ]
 
-    global crypto_psw
     #create window
     dialog = sg.Window('Edit credential', layout)
     #event loop to process "events" and get the "values" of the inputs
@@ -115,33 +162,30 @@ def open_edit_dialog(cred,stub):
             #create new row with edited data
             new_row = {}
             new_row["name"] = cred["name"]
-            new_row["user"] = values[0]
-            new_row["psw"] = values[1]
+            new_row["user"] = values[1]
+            new_row["psw"] = values[2]
             #save changes on the storage
-            stub.edit_credential(new_row,crypto_psw)
+            db_handler.edit_credential(new_row)
             #refresh table data
             refresh_data()
             break
         elif event == 'Delete':
-            #check if the credential exists
-            check = stub.is_already_present(cred["name"])
-            if check == True:
-                #remove credential and save changes on the storage
-                stub.remove_credential(cred["name"],crypto_psw)
-                #refresh table data
-                refresh_data()
+            #remove credential and save changes on the storage
+            db_handler.remove_credential(cred["name"])
+            #refresh table data
+            refresh_data()
             break
         elif event == sg.WIN_CLOSED: #if user closes window or clicks cancel
             break              
     dialog.close()
 
-def open_add_dialog(stub):
+def open_add_dialog():
     #create layout for the dialog
     layout = [ [sg.Text('Name',size=(10,1)),sg.InputText(size=(25,1),justification='center')],[sg.Text('User',size=(10,1)), sg.InputText(size=(25,1),justification='center')],
                [sg.Text('Password',size=(10,1)), sg.InputText(size=(25,1),justification='center')],
                [sg.Button('Add')] ]
 
-    global crypto_psw
+    global db_handler
     
     #create window
     dialog = sg.Window('Add credential', layout)
@@ -155,7 +199,7 @@ def open_add_dialog(stub):
             new_row["user"] = values[1]
             new_row["psw"] = values[2]
             #add row and save changes on storage
-            res = stub.add_credential(new_row,crypto_psw)
+            res = db_handler.add_credential(new_row)
             if res == True:
                 #refresh table data
                 refresh_data()
@@ -166,23 +210,19 @@ def open_add_dialog(stub):
             break              
     dialog.close()
 
-def open_main_window(stub):
+def open_main_window():
     #add a touch of color
     #sg.theme('DarkAmber')
     sg.theme('DarkGrey2')
 
     global crypto_psw
     #open dialog to get password
-    launch_psw_thread()
-
-    global file_manager
-    #save reference to file manager into a global variable
-    file_manager = stub
+    #launch_psw_thread()
 
     #load and decode encrypted storage file
-    stub.load_enc_file(crypto_psw)
+    db_handler.load_credentials()
     #get credentials JSON array
-    data = stub.credentials
+    data = db_handler.credentials
 
     if data != '':
         #create table element
@@ -195,10 +235,12 @@ def open_main_window(stub):
                 break
             elif event == 'Add':
                 #open add credential dialog
-                launch_add_thread(stub)
+                launch_add_thread()
+            elif event == 'Change Psw':
+                launch_change_psw_thread()
             elif event == '_table_':
                 #open edit credential dialog on row selection
-                launch_edit_thread(data[values['_table_'][0]],stub)
+                launch_edit_thread(data[values['_table_'][0]])
                 
         window.close()
 
@@ -224,11 +266,11 @@ def open_error_dialog(text):
 
 def refresh_data():
     global table
-    global file_manager
+    global db_handler
 
     data = []
     #get credentials from file manager and refresh table data
-    for i in file_manager.credentials:
+    for i in db_handler.credentials:
         row = []
         row.append(i["name"])
         row.append(i["user"])
