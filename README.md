@@ -34,3 +34,7 @@ The encrypted JSON object has this shape
   "psw" : <password>
  }
 ```
+
+## Getting started
+
+Just run **dist/LPM.exe** (under Windows,obviously). That's it.
