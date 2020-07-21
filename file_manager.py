@@ -4,14 +4,6 @@ import json
 import os
 from gui import launch_thread
 
-def get_filename(type):
-    with open('config.txt') as json_file:
-        config = json.load(json_file)
-    if type == 'enc':
-        return config["filename-enc"]
-    elif type == 'dec':
-        return config["filename"]
-    
 
 class Credential:
     def __init__(self, name, user, psw):
@@ -21,22 +13,31 @@ class Credential:
 
 
 class FileManager:
+    #credentials list
     credentials = {}
 
     def add_credential(self,cred,psw):
+        #check if credential id is already present
         check = self.is_already_present(cred["name"])
         if check == False:
             self.credentials.append(cred)
+            #save changes on storage
             self.save_enc_file(json.dumps(self.credentials).encode(),psw)
+            return True
+        else:
+            return False
     
     def remove_credential(self,name,psw):
         for y in self.credentials:
             if y["name"] == name:
+                #remove selected credential
                 self.credentials.remove(y)
+                #save changes on storage
                 self.save_enc_file(json.dumps(self.credentials).encode(),psw)
                 return
             
     def is_already_present(self,name):
+        #check if credential id is already present
         for y in self.credentials:
             if y["name"] == name:
                 return True
@@ -44,12 +45,13 @@ class FileManager:
         return False
     
     def edit_credential(self,c,psw):
+        #edit credential data
         for j in self.credentials:
             if c["name"] == j["name"]:
                 j["user"] = c["user"]
                 j["psw"] = c["psw"]
                 break
-
+        #save changes on storage
         self.save_enc_file(json.dumps(self.credentials).encode(),psw)
         
     def save_enc_file(self,data,psw):
@@ -87,57 +89,9 @@ class FileManager:
         fernet = Fernet(key)
         decrypted = fernet.decrypt(data)
 
+        #save credentials list as JSON array
         self.credentials = json.loads(decrypted.decode())
-        return self.credentials
-            
-    def handle_choice(self,choice,psw):
-        if int(choice) == 1:
-        #cipher mode
-            
-            key = derive_key(psw) #derive crypto key from password
-            file_enc = get_filename('enc') #file name
-            file_plain = get_filename('dec') #file name
-
-            #read file
-            with open(file_plain, 'rb') as f:
-                data = f.read()
-                f.close()
-
-            #encrypt file
-            fernet = Fernet(key)
-            encrypted = fernet.encrypt(data)
-
-            #write file
-            with open(file_enc, 'wb') as f:
-                f.write(encrypted)
-
-            os.unlink(file_plain)
-
-            open_success_window("File cifrato con successo")
-
-        elif int(choice) == 2:
-        #decipher mode
-            
-            key = derive_key(psw) #derive crypto key from password
-            file_enc = get_filename('enc') #file name
-            file_plain = get_filename('dec') #file name
-
-            #read file
-            with open(file_enc, 'rb') as f:
-                data = f.read()
-                f.close()
-
-            #decrypt file
-            fernet = Fernet(key)
-            encrypted = fernet.decrypt(data)
-
-            #write file
-            with open(file_plain, 'wb') as f:
-                f.write(encrypted)
-
-            os.unlink(file_enc)
-            
-            open_success_window("File decifrato con successo")
+        return self.credentials           
 
 
 #start gui
