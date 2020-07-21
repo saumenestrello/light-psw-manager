@@ -3,6 +3,9 @@ import threading
 
 crypto_psw = ''
 
+def set_theme():
+    sg.theme('DarkGrey2')
+
 def set_db_handler(stub):
     global db_handler
     db_handler = stub
@@ -106,7 +109,7 @@ def open_psw_dialog():
                 break
             else:
                 #show error
-                open_error_window('Insert password!')
+                open_error_dialog('Insert password!')
                 
     dialog.close()
 
@@ -136,9 +139,9 @@ def open_change_psw_dialog():
                     break
                 else:
                     if new_psw != repeat_psw:
-                        open_error_window('The new passwords are different!')
+                        open_error_dialog('The new passwords are different!')
                     elif old_psw != crypto_psw:
-                        open_error_window('Old password is not correct')
+                        open_error_dialog('Old password is not correct')
                     break
             else:
                 #show error
@@ -213,7 +216,6 @@ def open_add_dialog():
 def open_main_window():
     #add a touch of color
     #sg.theme('DarkAmber')
-    sg.theme('DarkGrey2')
 
     global crypto_psw
     #open dialog to get password

@@ -2,7 +2,7 @@ from key_derivation import derive_key
 from cryptography.fernet import Fernet
 import json
 import os
-from gui import launch_thread, set_db_handler, launch_psw_thread
+from gui import launch_thread, set_db_handler, set_theme, launch_psw_thread
 import sqlite3
 
 
@@ -170,5 +170,6 @@ handler = DBHandler(conn)
 
 #start gui
 set_db_handler(handler)
+set_theme()
 launch_psw_thread()
 launch_thread()
