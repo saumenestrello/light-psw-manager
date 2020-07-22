@@ -56,9 +56,9 @@ def create_table(json_data):
     data = []
     #table header
     header_list = [] 
-    header_list.append('Name')
-    header_list.append('User')
-    header_list.append('Psw')
+    header_list.append('Identifier')
+    header_list.append('Username')
+    header_list.append('Password')
     
     for i in range(0, len(json_data)):
         #create rows and append them to the list
@@ -74,21 +74,26 @@ def create_table(json_data):
     global table
     table = sg.Table(values=table_data,
                         enable_events=True,
-                        display_row_numbers=True,
-                        font='Helvetica',
+                        display_row_numbers=False,
+                        font=('Helvetica',10),
                         def_col_width=20,
                         justification='center',
                         bind_return_key=True,
+                        hide_vertical_scroll=True,
                         headings = header_list,
+                        header_font=('Helvetica',10,'bold'),
+                        pad=((10,10),(10,10)),
+                        row_height=25,
+                        #header_text_color='#b82a11',
                         auto_size_columns=False,
                         key='_table_',
                         text_color='red')
                         
     #create layout as an array of rows
-    layout = [[table],[sg.Button('Add'),sg.Button('Change Psw'),sg.Button('Exit')]]
+    layout = [[table],[sg.Button(button_text='Add',font=('Helvetica',10)),sg.Button(button_text='Change Psw',font=('Helvetica',10)),sg.Button(button_text='Exit',font=('Helvetica',10))]]
 
     #return window with table inside
-    return sg.Window('Credentials list',font='Helvetica',resizable=True).Layout(layout)
+    return sg.Window('Credentials list',font=('Helvetica',10),resizable=True).Layout(layout)
     
 
 def open_psw_dialog():
