@@ -26,7 +26,7 @@ ID | ENCODED
 ------------ | -------------
 credential ID | encrypted JSON object containing credential's username and password
 
-The encrypted JSON object has this shape
+The encrypted JSON object has this structure
 
 ```
 {
