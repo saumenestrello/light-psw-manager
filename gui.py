@@ -237,8 +237,10 @@ def open_main_window():
         while True:
             event, values = window.read()
             if event == sg.WIN_CLOSED: #if user closes window or clicks cancel
+                db_handler.close_connection()
                 break
-            elif event == 'Exit': 
+            elif event == 'Exit':
+                db_handler.close_connection()
                 break
             elif event == 'Add':
                 #open add credential dialog

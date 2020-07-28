@@ -137,7 +137,11 @@ class DBHandler:
             json_credential["name"] = row[0]
             self.credentials.append(json_credential)
 
-        return self.credentials           
+        return self.credentials
+
+    def close_connection(self):
+        #close db connection
+        self.connection.close()
 
 
 ############################################# PROGRAM STARTING POINT
